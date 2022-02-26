@@ -1,24 +1,27 @@
 import { Button, TextField, Switch, FormControlLabel } from '@mui/material';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import ValidacoesCadastro from '../../../contexts/ValidacoesCadastro';
+import useErros from '../../../hooks/useErros';
 
-const DadosPessoais = ({ onSubmit, validarCPF }) => {
+const DadosPessoais = ({ enviar }) => {
+
+    const validacoes = useContext(ValidacoesCadastro);
 
     const [nome, setNome] = useState("");
     const [sobrenome, setSobrenome] = useState("");
     const [cpf, setCpf] = useState("");
     const [promocoes, setPromocoes] = useState(true);
     const [novidades, setNovidades] = useState(true);
-    const [erros, setErros] = useState({
-        cpf: {
-            valido: true, 
-            texto: ""
-        }
-    });
+    const [erros, validarCampos, possoEnviar] = useErros(validacoes);
+
+    
 
     return(
         <form onSubmit={ event => {
             event.preventDefault();
-            onSubmit({ nome, sobrenome, cpf, novidades, promocoes });
+            if (possoEnviar()) {
+                enviar({ nome, sobrenome, cpf, novidades, promocoes });
+            }
         } }>
             <TextField 
                 value={ nome }
@@ -26,8 +29,12 @@ const DadosPessoais = ({ onSubmit, validarCPF }) => {
                 label="Nome" 
                 variant="outlined" 
                 fullWidth 
+                error={ !erros.nome.valido }
+                helperText={ erros.nome.texto }
+                name="nome"
                 margin="normal"
                 onChange={ event => setNome(event.target.value) }
+                onBlur={ validarCampos }
             />
             
             <TextField 
@@ -35,6 +42,7 @@ const DadosPessoais = ({ onSubmit, validarCPF }) => {
                 id="sobrenome" 
                 label="Sobrenome" 
                 variant="outlined" 
+                name="sobrenome"
                 fullWidth 
                 margin="normal"
                 onChange={ event => setSobrenome(event.target.value) }
@@ -47,6 +55,7 @@ const DadosPessoais = ({ onSubmit, validarCPF }) => {
                 error={ !erros.cpf.valido }
                 helperText={ erros.cpf.texto }
                 fullWidth 
+                name="cpf"
                 margin="normal"
                 onChange={ event => {
                     let tempCpf = event.target.value;
@@ -56,13 +65,7 @@ const DadosPessoais = ({ onSubmit, validarCPF }) => {
                     }
                     setCpf(tempCpf);
                 }}
-                onBlur={ event => {
-                    let validacao = validarCPF(event.target.value);
-
-                    setErros({
-                        cpf: validacao
-                    })
-                }}
+                onBlur={ validarCampos }
             />
 
             <FormControlLabel 
@@ -86,7 +89,7 @@ const DadosPessoais = ({ onSubmit, validarCPF }) => {
                 } 
             />
             
-            <Button type='submit' variant="contained" color="primary">Cadastrar</Button>
+            <Button type='submit' variant="contained" color="primary">Próximo</Button>
                 
         </form>
         
